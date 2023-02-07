@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 from . import database
 
-
 router = APIRouter(
         prefix="/locker"
         )

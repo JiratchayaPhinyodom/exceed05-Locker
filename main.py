@@ -4,20 +4,17 @@ from routers import locker, deposit
 
 app = FastAPI()
 
-origins = ["*"]
+origins = [""]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=[""],
     allow_headers=["*"],
 )
 app.include_router(locker.router)
 app.include_router(deposit.router)
-
-
-
 
 
 @app.get("/")
