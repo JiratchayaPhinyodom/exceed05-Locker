@@ -1,51 +1,69 @@
 from fastapi import APIRouter
 from .database import collection
-from datetime import datetime
-
+from datetime import datetime, timedelta
+from src.models import Locker
 
 
 router = APIRouter(
         prefix="/deposit",
         )
 
-@router.post("/user/{user_id}/{time_deposit}/{user_item}/{locker_id}")
-def insert_user(user_id: int, time_deposit: int, user_item: str, locker_id: int):
-#     print(collection.find({'Locker': {'locker_id': 1}}))
-    collection.update_one({'locker_id': locker_id}, 
-                          {"$set":{"user_id":user_id, "time_deposit":time_deposit, 
-                                   "user_item":user_item, "timestamp":round(datetime.now().timestamp())}})
-    return {"user_id":user_id, "time_deposit":time_deposit, "user_item":user_item, "timestamp":round(datetime.now().timestamp())}
+@router.post("/reserve")
+def insert_user(locker: Locker):
+    lk = collection.find_one({"locker_id": locker.locker_id}, {"_id":False})
+    if lk["is_available"] is True:
+        collection.update_one({'locker_id': locker.locker_id}, 
+                                {"$set":{"user_id":locker.user_id, "time_deposit":locker.time_deposit, 
+                                        "user_item":locker.user_item, "timestamp":round(datetime.now().timestamp()), "is_available":False}})
+        return {"user_id":locker.user_id, "time_deposit":locker.time_deposit, "user_item":locker.user_item, "timestamp":round(datetime.now().timestamp())}
+    else:
+         return {"Unable to reserve now"}
 
-@router.post("/pay/{user_id}/{locker_id}")
-def payment(user_id: int, locker_id: int):
-        res = collection.find_one({"user_id": user_id ,"locker_id": locker_id}, {"_id":0})
-        current_time = round(datetime.now().timestamp())
-        time_spent = round((current_time - res["timestamp"])/60)
-        if time_spent < 120:  
-                collection.update_one({'locker_id': locker_id}, 
-                                {"$set":{"pay": 0}})
-                return {"Pay": 0}
+@router.get("/get_price")
+def get_price(locker: Locker):
+#     user_id: int, locker_id: int
+    lk = collection.find_one({"user_id": locker.user_id, "locker_id": locker.locker_id}) 
+    if not lk:
+            return
+    start = lk["timestamp"]
+    start_dt = datetime.fromtimestamp(start)
+    time_deposit_min = lk["time_deposit"]
+
+    time_deposit_dt = start_dt + timedelta(minutes=time_deposit_min)
+
+    diff = time_deposit_dt - start_dt
+
+    current_time = datetime.now()
+
+    fee = 0
+
+    if current_time > time_deposit_dt:
+            fee += 20 * ((current_time - time_deposit_dt).total_seconds() / 600) //1
+
+    if diff <= timedelta(hours=2):
+            collection.update_one({"locker_id": locker.locker_id}, {"$set": {"price": fee}})
+            return fee
+
+    fee += 5 * (diff - timedelta(hours=2)).total_seconds() / 3600
+    collection.update_one({"locker_id": locker.locker_id}, {"$set": {"price": fee}})
+    return fee
+
+@router.get("/pay/{money}")
+def real_pay(locker: Locker, money:int):
+        # money: int, locker_id: int
+        lk = collection.find_one({"locker_id": locker.locker_id}, {"_id": 0})
+        if not locker:
+                return "Please try again."
+
+        if money < lk["price"]:
+                return "์Not enough money to pay"
         else:
-               if res["time_deposit"] > time_spent:
-                      money = round(((res["time_deposit"] - time_spent)/60)*5)
-                      collection.update_one({'locker_id': locker_id}, 
-                                {"$set":{"pay": money}})
-                      return {"Pay": money}
-               else:
-                      if res["time_deposit"] > 120:
-                             deduct_freetime = time_spent - 120
-                             intime = res["time_deposit"] - 120
-                             overtime = deduct_freetime - intime
-                             money = round((intime/60)*5) + round((overtime/10)*20)
-                             collection.update_one({'locker_id': locker_id}, 
-                                {"$set":{"pay": money}})
-                             return {"Pay": money}
-                      else:
-                             overtime = time_spent - res["time_deposit"]
-                             money = round((overtime/10)*20)                             
-                             collection.update_one({'locker_id': locker_id}, 
-                                {"$set":{"pay": money}})
-                             return {"Pay": money}
+                collection.update_one({"locker_id": locker.locker_id}, {"$set": {"is_available": True}})
+                if money - lk["price"] > 0:
+                        return money - lk["price"]
+                else:
+                        return 0
+
                       
                       
                       
