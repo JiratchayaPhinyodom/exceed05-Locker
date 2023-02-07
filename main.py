@@ -26,3 +26,11 @@ client = MongoClient(f"mongodb://{user}:{urllib.parse.quote(password)}@mongo.exc
 
 db = client["exceed05"] #use database name
 collection = db['Locker'] #db.collection_name
+
+
+app = FastAPI()
+
+
+@app.get("/")
+def root():
+    return "Hi"
