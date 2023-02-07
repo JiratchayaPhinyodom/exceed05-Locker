@@ -2,13 +2,10 @@ from fastapi import FastAPI, Body
 from typing import Union, Optional
 from pydantic import BaseModel
 from typing import Optional
-class User(BaseModel):
-    user_id : int
-    time_deposit: int
-    user_item: str
-    pay: int
-
+from datetime import datetime
 class Locker(BaseModel):
     locker_id: int
     is_avaliable: bool
-    user: Optional[User]
+    time_deposit: Optional[int]
+    user_item: Optional[list[str]]
+    timestamp: Optional[int]
