@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from models import Locker
+from routers import locker, deposit
 
 app = FastAPI()
 
@@ -13,10 +13,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(locker.router)
+app.include_router(deposit.router)
 
 
 
-app = FastAPI()
 
 
 @app.get("/")
