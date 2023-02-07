@@ -1,6 +1,5 @@
 from fastapi import APIRouter
-from database import collection
-
+from .database import *
 
 router = APIRouter(
         prefix="/locker"
@@ -8,5 +7,6 @@ router = APIRouter(
 
 @router.get("/status")
 def show_status():
+    pass
         
 
