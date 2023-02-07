@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Body
 from typing import Union, Optional
 from pydantic import BaseModel
-
+from typing import Optional
 class User(BaseModel):
     user_id : int
     time_deposit: int
@@ -11,4 +11,4 @@ class User(BaseModel):
 class Locker(BaseModel):
     locker_id: int
     is_avaliable: bool
-    remaining_time: int
+    user: Optional[User]
