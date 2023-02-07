@@ -11,3 +11,4 @@ class User(BaseModel):
 class Locker(BaseModel):
     locker_id: int
     is_avaliable: bool
+    remaining_time: int
