@@ -9,10 +9,9 @@ router = APIRouter(
 def show_status():
         all_locker = database.collection.find()
         ret = []
-        for dd in all_locker:
-                print(dd)
-                d = dd["Locker"]
-                ret.append({"locker_id": d["locker_id"], "is_available": d["is_available"]})
+        for d in all_locker:
+            del d["_id"]
+            ret.append(d)
         return {"result": ret}
         
         
