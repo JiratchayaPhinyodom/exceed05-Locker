@@ -2,11 +2,11 @@ from fastapi import FastAPI, Body
 from typing import Union, Optional
 from pydantic import BaseModel
 
-class Item(BaseModel):
-    item_id : Union[int, str]
-    item_name: str = "   "
-    item_bool: bool
+class User(BaseModel):
+    user_id : int
+    time_deposit: int
+    user_item: str
 
-class ItemDetail(BaseModel):
-    item_color: str
-    item_detail: str
+class Locker(BaseModel):
+    locker_id: int
+    is_avaliable: bool
